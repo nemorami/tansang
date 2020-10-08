@@ -13,6 +13,10 @@ TODO: Write usage instructions here
 ## Development
 
 TODO: Write development instructions here
+## Specification
+## 식별자
+- 영어와 숫자, _, 영문자나 _로 시작 
+<식별자> ::= 
 
 ## Contributing
 
