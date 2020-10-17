@@ -24,72 +24,90 @@ enum CharKind
   Letter
   Digit
   EofTkn
-  WhiteSpace
+  Comment
+  Whitespace
   Others
   END_list
-  END
+  EOF
 end
 
 class Token
+  getter text
+
   def initialize(@kind : CharKind = Others, @text : String = "")
   end
+
+  def to_s
+    "#{@kind}: #{@text}"
+  end
+
 end
 
 class TokenProcess
   @ch : Char?
+  @ch_type : CharKind = CharKind::Others
 
   def initialize(@fin : File)
+    getNextChar
   end
 
-  def getCharType : CharKind
-    unless @ch.nil?
-      case @ch
-      when Nil
-        return CharKind::End
-      when '0'..'9'
-        return CharKind::Digit
-      when ('A'..'Z') || ('a'..'z') || '_'
-        return CharKind::Letter
-      else
-        return CharKind::Others
-      end
-      return CharKind::End      
+  def getNextChar
+    @ch = @fin.read_char
+    
+    if @ch.nil?
+      @ch_type = CharKind::EOF
+      return
     end
+    @ch_type = case @ch.as(Char)
+    when Nil
+      CharKind::End
+    when '0'..'9'
+      CharKind::Digit
+    when 'A'..'Z', 'a'..'z', '_'
+      CharKind::Letter
+    when '('
+      CharKind::Lparen
+    when ')'
+      CharKind::Rparen    
+    when '#'
+      CharKind::Comment
+    when ' ', '\t', '\n'
+      CharKind::Whitespace
+    else
+      CharKind::Others
+    end    
   end
 
-  def nextTkn : Token?
-    text = ""
-    loop do
-      @ch = @fin.read_char
-
-      # next if ch.whitespace?
-      ch_type = getCharType
-      case ch_type
-      when CharKind::Letter
-        while (ch_type == CharKind::Letter || ch_type == CharKind::Digit)
-          text += @ch.as(Char)
-          @ch = @fin.read_char
-          ch_type = getCharType
-        end
-        puts "text => #{text}"
-        return Token.new(CharKind::Letter, text)
-      when Nil
-        break
-      when CharKind::WhiteSpace # 스페이스면 다음 글자를 가져온다.
-        @ch = @fin.read_char
-      when CharKind::Digit
-        num = 0
-        while (getCharType == CharKind::Digit)
-          num = num * 10 + 0
-          if @ch.nil?
-            0
-          else
-            puts typeof(@ch)
-          end
-          @ch = @fin.read_char
-        end
-        return Token.new(CharKind::Digit, num.to_s)
-      end
+  def nextTkn : Token? 
+    while(@ch_type == CharKind::Whitespace)
+      getNextChar
     end
+    case @ch_type
+    when CharKind::Comment
+      line = @fin.gets
+      getNextChar
+      return Token.new(CharKind::Comment, line || "")
+    when CharKind::Letter
+      text = ""
+      while (@ch_type == CharKind::Letter || @ch_type == CharKind::Digit)
+        text += @ch.as(Char)
+        getNextChar        
+      end
+      return Token.new(CharKind::Letter, text)
+    when CharKind::Digit
+      num = 0
+      while (@ch_type == CharKind::Digit)
+        num = num * 10 + (@ch.as?(Char).try &.to_i? || 0)
+        getNextChar        
+      end
+      return Token.new(CharKind::Digit, num.to_s)
+    when CharKind::EOF
+      return nil    
+    end
+
+    re = Token.new(@ch_type, @ch.to_s)
+    getNextChar
+    return re
   end
+  
 end

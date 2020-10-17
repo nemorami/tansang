@@ -1,10 +1,10 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"command": "shards build --debug ${workspaceFolderBasename}",
-			"label": "Compile",
-			"type": "shell"
-		}
-	]
-}
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Compile",
+        "command": "shards build --debug ${workspaceFolderBasename}",
+        "type": "shell"
+      }
+    ]
+  }

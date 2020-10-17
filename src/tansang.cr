@@ -7,17 +7,10 @@ module Tansang
   # TODO: Put your code here
 end
 
-io = File.open("./test")
+io = File.open("./README.md")
 
 tp = TokenProcess.new(io)
-puts tp.nextTkn()
 
-# ch = nil
-# case ch
-# when Nil
-#   puts "ch is nil"
-# when 'A' .. 'Z'
-#   puts "ch is capital"
-
-# end
-
+  loop do    
+    puts tp.nextTkn.try &.to_s || break      
+  end

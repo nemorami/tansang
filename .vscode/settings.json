@@ -1,6 +1,8 @@
 {
     "crystal-lang.shards": "/usr/bin/shards",
-    "crystal-lang.server": "/home/nemorami/devel/vscode/scry/bin/scry",
+    "crystal-lang.server": "/usr/bin/scry",
     "crystal-lang.compiler": "/usr/bin/crystal",
-    "crystal-lang.implementations": true
+    "crystal-lang.implementations": true,
+    "crystal-lang.hover": true,
+    "crystal-lang.completion": true
 }
