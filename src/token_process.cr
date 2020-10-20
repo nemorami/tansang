@@ -38,9 +38,9 @@ class Token
   end
 
   def to_s
-    "#{@kind}: #{@text}"
-  end
+    "#{@kind}: #{@text}"    
 
+  end
 end
 
 class TokenProcess
