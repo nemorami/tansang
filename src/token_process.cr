@@ -1,113 +1,118 @@
-enum CharKind
-  Lparen     = 40
-  Rparen     = 41
-  Plus       = 43
-  Minus
-  Multi
-  Divi
-  Assign
-  Comma
-  DblQ
-  Equal
-  NotEq
-  Less
-  LessEq
-  Great
-  GreatEq
-  If
-  Else
-  End
-  Print
-  Ident
-  IntNum
-  String
-  Letter
-  Digit
-  EofTkn
-  Comment
-  Whitespace
-  Others
-  END_list
-  EOF
+class TokenTable
+  # TokenKind nil??
+  @data = [] of {Int32, String, TokenKind?}  
+  def push_token(line_no : Int32, token : String, @kind : TokenKind?)
+    @data.push({line_no, token, @kind})
+  end
+
+  def print
+    @data.each do |e|
+      p e
+    end
+  end
 end
 
-class Token
-  getter text
-
-  def initialize(@kind : CharKind = Others, @text : String = "")
-  end
-
-  def to_s
-    "#{@kind}: #{@text}"    
-
-  end
+enum TokenKind
+  Identifier
+  Operator
+  Delimiter
+  Digit
+  Float
+  String
+  Comment
 end
 
 class TokenProcess
-  @ch : Char?
-  @ch_type : CharKind = CharKind::Others
+  getter  token_table
 
-  def initialize(@fin : File)
-    getNextChar
+  macro get_rest_token(index, ch, iter, kind, condition)
+ 
+    text = {{ch}}.to_s
+    while({{iter}}.has_next? &&(ch = {{iter}}.next_char))          
+      case ch
+      when {{condition.id}}
+        text += ch
+      else
+        break      
+      end
+    end
+    @token_table.push_token({{index}}, text, {{kind}})
+    next    
   end
+  
+  def initialize(fin : File)
+    @token_table = TokenTable.new
+  
+    fin.each_line.with_index do |line, index|      
+      iter = Char::Reader.new(line)
+      loop do
+        ch = iter.current_char
+       
+        case ch
+          #
+          # 공백
+          #
+        when .whitespace?
+          while(iter.has_next? && (ch = iter.next_char))
+            case ch
+            when .whitespace?
+            else
+              break
+            end
+          end          
+          next
+          #
+          # 식별자 구분
+          #        
+        when 'A'..'Z', 'a'..'z', '_', '@'  # 식별자 구분          
+          get_rest_token(index, ch, iter, TokenKind::Identifier, "'A'..'Z', 'a'..'z', '_', '@', '0'..'9'")          
+         
 
-  def getNextChar
-    @ch = @fin.read_char
-    
-    if @ch.nil?
-      @ch_type = CharKind::EOF
+          # #
+          # 숫자 구분
+          #
+        when '0'..'9' # 숫자구분      # TODO 정수와 소수 구별
+          get_rest_token(index, ch, iter, TokenKind::Digit, "'0'..'9'")
+         
+
+          #
+          # 주석
+          #
+        when '#'
+          text = ch.to_s
+          while(iter.has_next?)
+            text += iter.next_char
+          end
+          @token_table.push_token(index, text, TokenKind::Comment)
+          #
+          # 구분자
+          #
+        when '(', ')', ';', ','
+          @token_table.push_token(index, ch.to_s, TokenKind::Delimiter)
+        when '.'
+          get_rest_token(index, ch, iter, TokenKind::Delimiter, "'.'")
+        when ':'
+          get_rest_token(index, ch, iter, TokenKind::Delimiter, "':'")
+          #
+          # 연산자
+          #
+        when '+', '-', '*', '/', '>', '<'  
+          get_rest_token(index,ch,iter, TokenKind::Operator, "'='") 
+         
+        when nil
+          break
+        end
+        if(iter.has_next?)
+          ch = iter.next_char
+        else
+          break
+        end
+      end
+    rescue e
+      puts e
       return
     end
-    @ch_type = case @ch.as(Char)
-    when Nil
-      CharKind::End
-    when '0'..'9'
-      CharKind::Digit
-    when 'A'..'Z', 'a'..'z', '_'
-      CharKind::Letter
-    when '('
-      CharKind::Lparen
-    when ')'
-      CharKind::Rparen    
-    when '#'
-      CharKind::Comment
-    when ' ', '\t', '\n'
-      CharKind::Whitespace
-    else
-      CharKind::Others
-    end    
-  end
-
-  def nextTkn : Token? 
-    while(@ch_type == CharKind::Whitespace)
-      getNextChar
-    end
-    case @ch_type
-    when CharKind::Comment
-      line = @fin.gets
-      getNextChar
-      return Token.new(CharKind::Comment, line || "")
-    when CharKind::Letter
-      text = ""
-      while (@ch_type == CharKind::Letter || @ch_type == CharKind::Digit)
-        text += @ch.as(Char)
-        getNextChar        
-      end
-      return Token.new(CharKind::Letter, text)
-    when CharKind::Digit
-      num = 0
-      while (@ch_type == CharKind::Digit)
-        num = num * 10 + (@ch.as?(Char).try &.to_i? || 0)
-        getNextChar        
-      end
-      return Token.new(CharKind::Digit, num.to_s)
-    when CharKind::EOF
-      return nil    
-    end
-
-    re = Token.new(@ch_type, @ch.to_s)
-    getNextChar
-    return re
+ 
   end
   
 end

@@ -7,10 +7,7 @@ module Tansang
   # TODO: Put your code here
 end
 
-io = File.open("./src/token_process.cr")
+io = File.open("./src/test.cr")
 
 tp = TokenProcess.new(io)
-
-loop do
-  puts tp.nextTkn.try &.to_s || break
-end
+tp.token_table.print

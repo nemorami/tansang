@@ -33,8 +33,10 @@ Save this snippet into a file named `main.tan`. Now do: `tansang run main.tan`.
 ```tansang
 type Main
 fn init() {
-    println(add(77, 33))
-    println(sub(100, 50))
+    let a! = [1, 2, 3, 4, 5]
+    Console.puts(add(77, 33))
+    Console.puts(sub(100, 50))
+    Console.puts(sum(a!))
 }
 
 fn add(x Int, y Int) Int {
@@ -45,6 +47,23 @@ fn sub(x Int, y Int) Int {
     return x - y
 }
 
+fn sum(a! Array<Int>) Array<Int>{
+    let total! Int = 0
+    total! = a.each {
+        total! += e # total! = total + e
+
+    }
+    a.append!(s)
+    return a
+}
+
+fn addOne(a! Int) Int {
+    a! = a + 1
+}
+
+
+
+All Function arguments passed by immutable reference.
 
 ```
 ### Returning multiple values
