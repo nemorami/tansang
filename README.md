@@ -47,14 +47,13 @@ fn sub(x Int, y Int) Int {
     return x - y
 }
 
-fn sum(a! Array<Int>) Array<Int>{
+fn sum(a! Array<Int>) <Int>{
     let total! Int = 0
-    total! = a.each {
-        total! += e # total! = total + e
+    a.each {
+        total.plus!(e) # 
 
-    }
-    a.append!(s)
-    return a
+    }    
+    return total
 }
 
 fn addOne(a! Int) Int {
@@ -90,9 +89,9 @@ fn foo() (Int, Int) {
 ```tansang
 type Main
 fn sum(a Tuple<Int>) Int {
-    let total = 0
+    let total! = 0
     a.each {
-        total += e # e is each item in a
+        total.plus!(e) # e is each item in a
     }
     return total # redundancy
 }
